@@ -49,6 +49,11 @@ const userSchema = new Schema({
         require: true,
         trim: true,
     },
+    role: {
+        type: String,
+        default: 'User',
+        enum: ['User', "Admin", "Manager"]
+    },
     gender: {
         type: String,
         default: "Male",
