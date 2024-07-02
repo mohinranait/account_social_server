@@ -25,7 +25,13 @@ app.get('/', (req, res) => {
     res.send('Home route is working')
 });
 
-app.listen(5000, () => {
 
-    console.log(`Server is running at port http://localhost:${serverPort}`)
+// client error handle
+app.use((req, res, next) => {
+    res.status(404).send({
+        message: "route not found",
+        success: false,
+    })
 })
+
+module.exports = app;
