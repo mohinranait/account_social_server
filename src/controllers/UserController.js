@@ -1,45 +1,58 @@
+const { successResponse } = require("../helpers/responsHandler");
 const User = require("../models/UserModal")
+const createError = require("http-errors");
+const mongoose = require('mongoose')
 
 // get single user by ID
-const getSingleUserById = async (req, res) => {
+const getSingleUserById = async (req, res, next) => {
     try {
 
         const userId = req.params?.id;
-        const user = await User.findById(userId).select('-password');
-        if (!user) {
-            return res.send({
-                success: false,
-                message: 'not-found',
-            })
+        // mongoose id Validation
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            throw createError(400, 'Invalid user ID');
         }
-        res.status(200).send({
-            success: true,
-            user,
+        const user = await User.findById(userId).select('-password');
+        if (!user) throw createError(404, 'not-found');
+
+        // send success response 
+        return successResponse(res, {
+            message: 'user',
+            statusCode: 200,
+            payload: {
+                user,
+            }
         })
+
     } catch (error) {
-        res.status(500).send({
-            success: false,
-            message: error.message
-        })
+        // mongoose ID validation
+        if (error instanceof mongoose.Error) {
+            return next(createError(400, "Invalid user ID"))
+        }
+        next(error)
     }
 }
 
 
 // Get all users
-const getAllUsers = async (req, res) => {
+const getAllUsers = async (req, res, next) => {
     try {
         const users = await User.find({}).select('-password');
-        res.status(200).send({
-            success: true,
-            users,
+
+        // send success response 
+        return successResponse(res, {
+            message: 'users',
+            statusCode: 200,
+            payload: {
+                users,
+            }
         })
     } catch (error) {
-        res.status(500).send({
-            success: false,
-            message: error.message
-        })
+        next(error)
     }
 }
+
+
 
 module.exports = {
     getSingleUserById,

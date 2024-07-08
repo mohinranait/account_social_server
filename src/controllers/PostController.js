@@ -1,62 +1,66 @@
+const { successResponse } = require("../helpers/responsHandler");
 const Post = require("../models/PostModal");
+const createError = require("http-errors");
+
 
 // Create new psot
-const createNewPost = async (req, res) => {
+const createNewPost = async (req, res, next) => {
     try {
 
         const body = req.body;
         const post = await Post.create({ ...body, owner: ownerId });
-        res.status(201).send({
-            success: true,
+
+
+        return successResponse(res, {
+            statusCode: 201,
             message: 'created',
-            post,
+            payload: {
+                post,
+            }
         })
     } catch (error) {
-        res.status(500).send({
-            success: false,
-            message: error.message
-        })
+        next(error)
     }
 }
 
 // get all posts
-const getAllPosts = async (req, res) => {
+const getAllPosts = async (req, res, next) => {
     try {
         const posts = await Post.find({});
-        res.status(200).send({
-            success: true,
+        return successResponse(res, {
+            statusCode: 200,
             message: 'success',
-            posts,
+            payload: {
+                posts,
+            }
         })
+
     } catch (error) {
-        res.status(500).send({
-            success: false,
-            message: error.message
-        })
+        next(error)
     }
 }
 
 // Delete posts by ID 
-const deletePost = async (req, res) => {
+const deletePost = async (req, res, next) => {
     try {
 
         const postId = req.params?.id;
+
+        // delete post by ID
         const post = await Post.findByIdAndDelete(postId);
-        if (!post) {
-            return res.status(404).send({
-                success: false,
-                message: 'not-found',
-            })
-        }
-        res.status(200).send({
-            success: true,
+
+        // post not found error
+        if (!post) throw createError(404, 'not-found')
+
+
+        // send delete response
+        return successResponse(res, {
+            statusCode: 200,
             message: 'deleted',
         })
+
     } catch (error) {
-        res.status(500).send({
-            success: false,
-            message: error.message
-        })
+        next(error)
     }
 }
 

@@ -2,98 +2,89 @@ const User = require("../models/UserModal");
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { jwtSecret } = require("../config/secretEnv");
+const { isoStringDateFormat } = require("../helpers/dateFormater");
+const { successResponse } = require("../helpers/responsHandler");
+const createError = require("http-errors")
 
 // Register new user
-const createNewUser = async (req, res) => {
+const createNewUser = async (req, res, next) => {
     try {
-        const { password, email } = req.body;
+        const { password, email, day, month, year, gender, firstName, lastName } = req.body;
 
-        if (!password) {
-            return res.send({
-                success: false,
-                message: 'Password is required',
-            })
-        }
-        if (!email) {
-            return res.send({
-                success: false,
-                message: 'Email is required',
-            })
-        }
+        // validation field
+        if (!firstName) throw createError(400, 'First name is required');
+        if (!lastName) throw createError(400, 'Last name is required');
+        if (!email) throw createError(400, 'Email is required')
+        if (!day) throw createError(400, 'Day is required')
+        if (!month) throw createError(400, 'Month is required')
+        if (!year) throw createError(400, 'year is required')
+        if (!password) throw createError(400, 'Password is required')
 
-        // exists user 
+
+
+        // find exists user by email 
         const existsUser = await User.findOne({ email }).select('email _id')
-        if (existsUser?._id) {
-            return res.status(409).send({
-                success: false,
-                message: 'Email already exists',
-            })
-        }
+        if (existsUser?._id) throw createError(409, 'Email already exists')
 
-        const body = req.body;
+
+
 
         // generate hash password
         const salt = bcrypt.genSaltSync(10);
-        const hash = bcrypt.hashSync(password, salt);
+        const hashPassword = bcrypt.hashSync(password, salt);
+
+
+        // create user object
+        const userObj = {
+            name: {
+                firstName,
+                lastName,
+                fullName: firstName + " " + lastName,
+            },
+            email,
+            password: hashPassword,
+            gender,
+            birthday: {
+                day,
+                month,
+                year,
+                date: isoStringDateFormat(`${day} ${month} ${year}`)
+            }
+        };
 
         // Create new user query
-        let user = await User.create({ ...body, password: hash });
+        let user = await User.create(userObj);
 
         // convert to plain object and remove property
         user = user.toObject();
         delete user.password;
-        delete user.role
 
-        // send status 
-        res.status(201).send({
-            success: true,
-            message: "Success",
-            user,
+        // send success response 
+        return successResponse(res, {
+            message: "User create",
+            statusCode: 201,
+            payload: user,
         })
     } catch (error) {
-        res.status(500).send({
-            success: false,
-            message: error.message,
-        })
+        next(error)
     }
 }
 
 // login user
-const loginUser = async (req, res) => {
+const loginUser = async (req, res, next) => {
     try {
         const { email, password } = req.body;
 
-        if (!email) {
-            return res.send({
-                success: false,
-                message: 'Email is required',
-            })
-        }
-
-        if (!password) {
-            return res.send({
-                success: false,
-                message: 'Password is required',
-            })
-        }
+        if (!email) throw createError(400, 'Email is required')
+        if (!password) throw createError(400, 'Password is required');
 
         // find existing user
-        let existsUser = await User.findOne({ email }).select('password email role _id');
-        if (!existsUser) {
-            return res.status(404).send({
-                success: false,
-                message: 'not-found',
-            })
-        }
+        let existsUser = await User.findOne({ email });
+        if (!existsUser) throw createError(404, "not-found");
 
         // match password
         const passMatch = await bcrypt.compare(password, existsUser?.password);
-        if (!passMatch) {
-            return res.status(401).send({
-                success: false,
-                message: 'Forbidden',
-            })
-        }
+        if (!passMatch) throw createError(401, 'Forbidden');
 
         // convert to plain object and remove password
         existsUser = existsUser.toObject();
@@ -123,16 +114,13 @@ const loginUser = async (req, res) => {
                 token
             })
     } catch (error) {
-        res.status(500).send({
-            success: false,
-            message: error.message,
-        })
+        next(error)
     }
 }
 
 
 // logout user
-const logoutUser = async (req, res) => {
+const logoutUser = async (req, res, next) => {
     try {
         res.clearCookie('access_token', {
             maxAge: 0,
@@ -145,34 +133,31 @@ const logoutUser = async (req, res) => {
             user: null,
         });
     } catch (error) {
-        res.status(500).send({
-            success: false,
-            message: error.message,
-        })
+        next(error)
     }
 }
 
 
 // Get authentication user
-const findAuthenticationUser = async (req, res) => {
+const findAuthenticationUser = async (req, res, next) => {
     try {
         const { id, role, email, } = req?.user;
         const user = await User.findById(id).select('-password');
         if (!user) {
-            return res.status(404).send({
-                message: 'not-found',
-                success: false,
-            })
+            return next(createError(404, 'not-found'))
         }
-        res.send({
-            user,
-            isAuthenticated: true,
+
+        return successResponse(res, {
+            statusCode: 200,
+            message: 'login',
+            payload: {
+                user,
+                isAuthenticated: true,
+            }
         })
+
     } catch (error) {
-        res.status(500).send({
-            success: false,
-            message: error.message,
-        })
+        next(error)
     }
 }
 

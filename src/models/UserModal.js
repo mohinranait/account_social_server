@@ -4,28 +4,36 @@ const userSchema = new Schema({
     name: {
         firstName: {
             type: String,
-            require: true,
+            required: [true, 'First name is required'],
+            minlength: 2,
         },
         lastName: {
             type: String,
-            require: true,
+            required: true,
         },
         fullName: {
             type: String,
-            require: true,
+            required: true,
         },
     },
 
     email: {
         type: String,
-        require: true,
+        required: [true, "Email is required"],
         trim: true,
         lowercase: true,
         status: {
             type: String,
             default: 'public', // Public, Onlyme, Friends
+        },
+        validate: {
+            validator: (value) => {
+                return /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/.test(value);
+            },
+            message: (props) => `The "${props?.value}" is not valid email`
         }
     },
+
     defaultPhone: {
         type: String,
         status: {
@@ -46,8 +54,9 @@ const userSchema = new Schema({
 
     password: {
         type: String,
-        require: true,
+        require: [true, "Password is required"],
         trim: true,
+        minlength: [6, "Password minimum 6 charecters"]
     },
     role: {
         type: String,
@@ -84,6 +93,7 @@ const userSchema = new Schema({
     birthday: {
         month: {
             type: String,
+            required: [true, "Month is required"],
             status: {
                 type: String,
                 default: 'public', // Public, Onlyme, Friends
@@ -91,6 +101,7 @@ const userSchema = new Schema({
         },
         year: {
             type: String,
+            required: [true, "Year is required"],
             status: {
                 type: String,
                 default: 'public', // Public, Onlyme, Friends
@@ -98,6 +109,7 @@ const userSchema = new Schema({
         },
         day: {
             type: String,
+            required: [true, "Day is required"],
             status: {
                 type: String,
                 default: 'public', // Public, Onlyme, Friends
