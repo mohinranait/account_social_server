@@ -16,7 +16,7 @@ connectDb()
 
 const limiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minutes
-    limit: 6,
+    limit: 50,
     statusCode: 429,
     message: { message: 'Your request is rich. Try again' }
 })

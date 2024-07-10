@@ -100,19 +100,22 @@ const loginUser = async (req, res, next) => {
             }, jwtSecret, { expiresIn: '1d' });
 
         // send response 
-        res.status(200)
-            .cookie("access_token", token, {
-                httpOnly: true,
-                secure: true,
-                samesite: "none",
-            })
-            .send({
-                success: true,
-                message: 'success',
+        res.cookie("access_token", token, {
+            httpOnly: true,
+            secure: true,
+            samesite: "none",
+        })
+
+        return successResponse(res, {
+            statusCode: 200,
+            message: "Login success",
+            payload: {
                 user: existsUser,
                 isAuthenticated: true,
                 token
-            })
+            }
+        })
+
     } catch (error) {
         next(error)
     }

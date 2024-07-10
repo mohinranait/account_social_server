@@ -50,7 +50,13 @@ const getAllInvitations = async (req, res, next) => {
         let query = {
             reciverId: userId,
         };
-        const invitations = await Invitation.find(query);
+        const invitations = await Invitation.find(query).populate(
+            {
+                path: 'senderId',
+                select: 'name.fullName name.firstName gender',
+                populate: 'profileImage coverImage'
+            }
+        );
 
         return successResponse(res, {
             statusCode: 200,

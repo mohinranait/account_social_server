@@ -57,7 +57,6 @@ const getMonth = (value, action = 'short') => {
 
 // ISO date format converter from "day month Year"
 const isoStringDateFormat = (data) => {
-    console.log(data);
     const date = new Date(data)
     return date.toISOString();
 }
