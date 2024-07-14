@@ -1,12 +1,12 @@
 const postRouter = require("express").Router();
 const isLogin = require("../middleware/checkedLogin");
 const { createNewPost, deletePost, getAllPosts } = require("../controllers/PostController");
-const checkAuth = require("../middleware/checkedAuth");
+const isOwner = require("../middleware/isOwner");
 
 
 
-postRouter.post('/create', isLogin, checkAuth, createNewPost)
-postRouter.delete('/delete/:id', isLogin, checkAuth, deletePost)
-postRouter.get('/all', isLogin, checkAuth, getAllPosts)
+postRouter.post('/create', isLogin, createNewPost)
+postRouter.delete('/delete/:id', isLogin, deletePost)
+postRouter.get('/all', isLogin, getAllPosts)
 
 module.exports = postRouter;

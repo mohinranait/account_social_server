@@ -1,5 +1,5 @@
 const { sendNewInvitation, invitationAccepted, deleteInvitation, getAllInvitations } = require('../controllers/InvitationController');
-const checkAuth = require('../middleware/checkedAuth');
+
 const isLogin = require('../middleware/checkedLogin');
 
 const inviteRoute = require('express').Router();

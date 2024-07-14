@@ -24,7 +24,7 @@ const userSchema = new Schema({
         lowercase: true,
         status: {
             type: String,
-            default: 'public', // Public, Onlyme, Friends
+            default: 'Public', // Public, Onlyme, Friends
         },
         validate: {
             validator: (value) => {
@@ -38,7 +38,7 @@ const userSchema = new Schema({
         type: String,
         status: {
             type: String,
-            default: 'public', // Public, Onlyme, Friends
+            default: 'Public', // Public, Onlyme, Friends
         }
     },
     phones: [
@@ -47,7 +47,7 @@ const userSchema = new Schema({
             isVarified: Boolean,
             status: {
                 type: String,
-                default: 'public', // Public, Onlyme, Friends
+                default: 'Public', // Public, Onlyme, Friends
             }
         }
     ],
@@ -87,7 +87,7 @@ const userSchema = new Schema({
         type: String,
         status: {
             type: String,
-            default: 'public', // Public, Onlyme, Friends
+            default: 'Public', // Public, Onlyme, Friends
         }
     },
     birthday: {
@@ -96,7 +96,7 @@ const userSchema = new Schema({
             required: [true, "Month is required"],
             status: {
                 type: String,
-                default: 'public', // Public, Onlyme, Friends
+                default: 'Public', // Public, Onlyme, Friends
             }
         },
         year: {
@@ -104,7 +104,7 @@ const userSchema = new Schema({
             required: [true, "Year is required"],
             status: {
                 type: String,
-                default: 'public', // Public, Onlyme, Friends
+                default: 'Public', // Public, Onlyme, Friends
             }
         },
         day: {
@@ -112,14 +112,14 @@ const userSchema = new Schema({
             required: [true, "Day is required"],
             status: {
                 type: String,
-                default: 'public', // Public, Onlyme, Friends
+                default: 'Public', // Public, Onlyme, Friends
             }
         },
         date: {
             type: String,
             status: {
                 type: String,
-                default: 'public', // Public, Onlyme, Friends
+                default: 'Public', // Public, Onlyme, Friends
             },
         },
     },
@@ -127,23 +127,48 @@ const userSchema = new Schema({
         type: String,
         status: {
             type: String,
-            default: 'public', // Public, Onlyme, Friends
+            default: 'Public', // Public, Onlyme, Friends
         },
     },
     currentCity: {
         type: String,
         status: {
             type: String,
-            default: 'public', // Public, Onlyme, Friends
+            default: 'Public', // Public, Onlyme, Friends
         },
     },
     isMarried: {
         type: String,
-        default: "Unmarried",
-        enum: ['Unmarried', 'Married', 'Ralation'],
+        default: "Single",
+        enum: ['Single', 'Married', 'Ralation'],
         status: {
             type: String,
-            default: 'public', // Public, Onlyme, Friends
+            default: 'Public', // Public, Onlyme, Friends
+        },
+    },
+    isRelation: {
+        relationType: {
+            type: String,
+            default: "Single",
+            enum: ['Single', 'Married', 'Ralation'],
+        },
+        withRelation: {
+            type: Types.ObjectId,
+            default: null,
+            ref: 'User',
+        },
+        year: {
+            type: String,
+        },
+        month: {
+            type: String,
+        },
+        day: {
+            type: String,
+        },
+        status: {
+            type: String,
+            default: 'Public', // Public, Onlyme, Friends
         },
     },
     socialMedia: [
@@ -152,7 +177,7 @@ const userSchema = new Schema({
             url: String,
             status: {
                 type: String,
-                default: 'public', // Public, Onlyme, Friends
+                default: 'Public', // Public, Onlyme, Friends
             },
         }
     ],

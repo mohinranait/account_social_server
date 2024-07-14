@@ -4,16 +4,30 @@ const User = require("../models/UserModal")
 const createError = require("http-errors");
 const mongoose = require('mongoose')
 
-// get single user by ID
-const getSingleUserById = async (req, res, next) => {
+// get single user 
+const getSingleUser = async (req, res, next) => {
     try {
+        console.log('Call api');
+        const { userId, profileUrl, email } = req.query;
 
-        const userId = req.params?.id;
-        // mongoose id Validation
-        if (!mongoose.Types.ObjectId.isValid(userId)) {
-            throw createError(400, 'Invalid user ID');
+        let query = {};
+        console.log(profileUrl);
+
+        if (userId) {
+            query._id = userId;
         }
-        const user = await User.findById(userId).select('-password').populate('profileImage coverImage');
+
+        if (profileUrl) {
+            query.profileUrl = profileUrl
+        }
+
+        if (email) {
+            query.email = email
+        }
+
+
+
+        const user = await User.findOne(query).select('-password').populate('profileImage coverImage');
         if (!user) throw createError(404, 'not-found');
 
         // send success response 
@@ -40,7 +54,7 @@ const updatePorfileById = async (req, res, next) => {
     try {
 
         const userId = req?.user?.id;
-        const { website, profileTitle, homeTown, currentCity, isMarried, day, defaultPhone, profileUrl, month, year, gender, firstName, lastName } = req.body;
+        const { website, profileTitle, homeTown, isRelation, currentCity, isMarried, day, defaultPhone, profileUrl, month, year, gender, firstName, lastName } = req.body;
 
         // Find exists user
         const existsUser = await User.findById(userId);
@@ -69,6 +83,14 @@ const updatePorfileById = async (req, res, next) => {
             homeTown,
             currentCity,
             isMarried,
+            isRelation: {
+                relationType: isRelation?.relationType,
+                withRelation: isRelation?.withRelation,
+                year: isRelation?.year,
+                month: isRelation?.month,
+                day: isRelation?.day,
+                status: isRelation?.status,
+            },
             birthday: {
                 day: d,
                 month: m,
@@ -102,7 +124,20 @@ const updatePorfileById = async (req, res, next) => {
 // Get all users
 const getAllUsers = async (req, res, next) => {
     try {
-        const users = await User.find({}).select('-password');
+        const search = req.query?.search || '';
+        console.log(search);
+        let searchReg = new RegExp('.*' + search + '.*', 'i')
+        let query = {
+            $or: [
+                {
+                    "name.fullName": { $regex: searchReg }
+                }
+            ]
+        };
+        let options = { password: 0 }
+        console.log(query);
+
+        const users = await User.find(query).select('-password');
 
         // send success response 
         return successResponse(res, {
@@ -120,7 +155,7 @@ const getAllUsers = async (req, res, next) => {
 
 
 module.exports = {
-    getSingleUserById,
+    updatePorfileById,
     getAllUsers,
-    updatePorfileById
+    getSingleUser
 }

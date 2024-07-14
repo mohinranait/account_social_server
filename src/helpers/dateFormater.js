@@ -5,20 +5,20 @@ const getMonth = (value, action = 'short') => {
     let month = '';
     switch (value) {
         case 0:
-            month = action ? "January" : 'Jan';
+            month = action != 'short' ? "January" : 'Jan';
             break;
 
         case 1:
-            month = action ? "February" : 'Feb';
+            month = action != 'short' ? "February" : 'Feb';
             break;
 
         case 2:
-            month = action ? "March" : 'Mar';
+            month = action != 'short' ? "March" : 'Mar';
             break;
 
 
         case 3:
-            month = action ? "Aprile" : 'Apr';
+            month = action != 'short' ? "Aprile" : 'Apr';
             break;
 
         case 4:
@@ -26,25 +26,25 @@ const getMonth = (value, action = 'short') => {
             break;
 
         case 5:
-            month = action ? "June" : 'Jun';
+            month = action != 'short' ? "June" : 'Jun';
 
         case 6:
-            month = action ? "July" : 'Jul';
+            month = action != 'short' ? "July" : 'Jul';
 
         case 7:
-            month = action ? "August" : 'Aug';
+            month = action != 'short' ? "August" : 'Aug';
 
         case 8:
-            month = action ? "September" : 'Sep';
+            month = action != 'short' ? "September" : 'Sep';
 
         case 9:
-            month = action ? "October" : 'Oct';
+            month = action != 'short' ? "October" : 'Oct';
 
         case 10:
-            month = action ? "November" : 'Nov';
+            month = action != 'short' ? "November" : 'Nov';
 
         case 11:
-            month = action ? "December" : 'Dec';
+            month = action != 'short' ? "December" : 'Dec';
             break;
 
         default:

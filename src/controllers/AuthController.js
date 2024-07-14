@@ -5,6 +5,9 @@ const { jwtSecret } = require("../config/secretEnv");
 const { isoStringDateFormat } = require("../helpers/dateFormater");
 const { successResponse } = require("../helpers/responsHandler");
 const createError = require("http-errors")
+const slugify = require('slugify');
+const cloudinary = require("../config/utils/cloudinary");
+require('dotenv').config();
 
 // Register new user
 const createNewUser = async (req, res, next) => {
@@ -27,6 +30,11 @@ const createNewUser = async (req, res, next) => {
         if (existsUser?._id) throw createError(409, 'Email already exists')
 
 
+        // generate unique slug
+        const randomComponent = Math.random().toString(36);
+        const totalDocument = await User.find().countDocuments();
+        let totalDocForSlug = totalDocument + 1;
+        const slug = await generateUniqueSlug(randomComponent + totalDocForSlug)
 
 
         // generate hash password
@@ -44,6 +52,7 @@ const createNewUser = async (req, res, next) => {
             email,
             password: hashPassword,
             gender,
+            profileUrl: slug,
             birthday: {
                 day,
                 month,
@@ -165,9 +174,61 @@ const findAuthenticationUser = async (req, res, next) => {
 }
 
 
+const generateUniqueSlug = async (value) => {
+    try {
+        const slug = slugify(value, {
+            replacement: '-',
+            remove: undefined,
+            lower: false,
+            strict: false,
+            locale: 'vi',
+            trim: true
+        })
+        let uniqueSlug = slug;
+        let counter = 1
+
+        while (await User.exists({ profileUrl: uniqueSlug })) {
+            uniqueSlug = `${slug}-${counter++}`;
+        }
+
+        return uniqueSlug;
+    } catch (error) {
+        next(error)
+    }
+}
+
+
+const uploadMedia = async (req, res, next) => {
+    try {
+        const body = req.body;
+        const image = req.file.path;
+
+        // Upload an image
+        const uploadResult = await cloudinary.uploader
+            .upload(
+                image, {
+                public_id: 'social_app',
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+
+        const { url, format, width, height, bytes } = uploadResult;
+
+
+        res.send({
+            message: "success",
+            success: true,
+        })
+    } catch (error) {
+
+    }
+}
+
 module.exports = {
     createNewUser,
     loginUser,
     logoutUser,
     findAuthenticationUser,
+    uploadMedia
 }

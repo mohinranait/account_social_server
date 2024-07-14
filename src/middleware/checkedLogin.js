@@ -2,10 +2,11 @@ const jwt = require("jsonwebtoken");
 const { jwtSecret } = require("../config/secretEnv");
 const isLogin = async (req, res, next) => {
     const token = req.cookies?.access_token;
+    console.log(token);
     if (!token) {
         return res.status(401).send({
             success: false,
-            message: 'Forbidden',
+            message: 'Forbidden asf',
         })
     }
 

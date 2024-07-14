@@ -9,6 +9,18 @@ const fileSchema = new Schema({
     fileUrl: {
         type: String,
     },
+    width: {
+        type: Number,
+    },
+    height: {
+        type: Number,
+    },
+    extension: {
+        type: String,
+    },
+    size: {
+        type: Number,
+    }
 }, { timestamps: true });
 
 const FileType = model('FileType', fileSchema);
