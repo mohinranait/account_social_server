@@ -3,7 +3,7 @@ const { Schema, model, Types } = require('mongoose');
 const postSchema = new Schema({
     media: {
         type: Types.ObjectId,
-        ref: 'FileType',
+        ref: 'Media',
     },
     owner: {
         type: Types.ObjectId,

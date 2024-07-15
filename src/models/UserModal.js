@@ -70,11 +70,11 @@ const userSchema = new Schema({
     },
     profileImage: {
         type: Types.ObjectId,
-        ref: 'FileType'
+        ref: 'Media'
     },
     coverImage: {
         type: Types.ObjectId,
-        ref: 'FileType'
+        ref: 'Media'
     },
     profileUrl: String,
     userStatus: {
@@ -82,7 +82,9 @@ const userSchema = new Schema({
         default: 'Active',
         enum: ['Active', "Pending", "Block", "Suspend"]
     },
-    website: String,
+    website: {
+        type: Array,
+    },
     profileTitle: {
         type: String,
         status: {
@@ -124,14 +126,20 @@ const userSchema = new Schema({
         },
     },
     homeTown: {
-        type: String,
+        value: {
+            type: String,
+            default: null,
+        },
         status: {
             type: String,
             default: 'Public', // Public, Onlyme, Friends
         },
     },
     currentCity: {
-        type: String,
+        value: {
+            type: String,
+            default: null,
+        },
         status: {
             type: String,
             default: 'Public', // Public, Onlyme, Friends
@@ -173,8 +181,12 @@ const userSchema = new Schema({
     },
     socialMedia: [
         {
-            type: String,
-            url: String,
+            type: {
+                type: String,
+            },
+            url: {
+                type: String,
+            },
             status: {
                 type: String,
                 default: 'Public', // Public, Onlyme, Friends

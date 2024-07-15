@@ -1,17 +1,21 @@
+const cloudinary = require("../config/utils/cloudinary");
 const { isoStringDateFormat } = require("../helpers/dateFormater");
 const { successResponse } = require("../helpers/responsHandler");
 const User = require("../models/UserModal")
 const createError = require("http-errors");
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
+const Media = require("../models/FileModal");
+const Post = require("../models/PostModal");
 
 // get single user 
 const getSingleUser = async (req, res, next) => {
     try {
-        console.log('Call api');
+
         const { userId, profileUrl, email } = req.query;
 
         let query = {};
-        console.log(profileUrl);
+
+
 
         if (userId) {
             query._id = userId;
@@ -27,16 +31,24 @@ const getSingleUser = async (req, res, next) => {
 
 
 
-        const user = await User.findOne(query).select('-password').populate('profileImage coverImage');
+        const user = await User.findOne(query).select('-password').populate('profileImage').populate('coverImage');
         if (!user) throw createError(404, 'not-found');
 
+
+
         // send success response 
-        return successResponse(res, {
-            message: 'user',
-            statusCode: 200,
-            payload: {
-                user,
-            }
+        // return successResponse(res, {
+        //     message: 'user',
+        //     statusCode: 200,
+        //     payload: {
+        //         user,
+        //     }
+        // })
+
+        res.status(200).send({
+            message: "user",
+            success: true,
+            payload: { user }
         })
 
     } catch (error) {
@@ -55,6 +67,9 @@ const updatePorfileById = async (req, res, next) => {
 
         const userId = req?.user?.id;
         const { website, profileTitle, homeTown, isRelation, currentCity, isMarried, day, defaultPhone, profileUrl, month, year, gender, firstName, lastName } = req.body;
+        const image = req.file?.path;
+
+
 
         // Find exists user
         const existsUser = await User.findById(userId);
@@ -67,39 +82,103 @@ const updatePorfileById = async (req, res, next) => {
         let d = day || existsUser?.birthday?.day;
         let m = month || existsUser?.birthday?.month;
         let y = year || existsUser?.birthday?.year;
+
+
         // Update user format
-        let userObj = {
+        const updateObj = {};
+        if (firstName || lastName) {
+            updateObj.name = {
+                firstName: firstName || existsUser?.name?.firstName,
+                lastName: lastName || existsUser?.name?.lastName,
+                fullName: `${firstName || existsUser?.name?.firstName} ${lastName || existsUser?.name?.lastName}`
+            };
+        }
+        if (gender) {
+            updateObj.gender = gender;
+        }
+        if (defaultPhone) {
+            updateObj.defaultPhone = defaultPhone;
+        }
+        // if (profileUrl) {
+        //     updateObj.profileUrl = profileUrl;
+        // }
+        if (website) {
+            updateObj.website = website;
+        }
+        if (profileTitle) {
+            updateObj.profileTitle = profileTitle;
+        }
+        if (homeTown) {
+            updateObj.homeTown = {
+                value: homeTown.value || existsUser?.homeTown?.value,
+                status: homeTown.status || existsUser?.homeTown?.status
+            };
+        }
+        if (currentCity) {
+            updateObj.currentCity = {
+                value: currentCity.value || existsUser?.currentCity?.value,
+                status: currentCity.status || existsUser?.currentCity?.status
+            };
+        }
+        if (isMarried) {
+            updateObj.isMarried = isMarried;
+        }
+        if (isRelation) {
+            updateObj.isRelation = {
+                relationType: isRelation.relationType || existsUser?.isRelation?.relationType,
+                withRelation: isRelation.withRelation || existsUser?.isRelation?.withRelation,
+                year: isRelation.year || existsUser?.isRelation?.year,
+                month: isRelation.month || existsUser?.isRelation?.month,
+                day: isRelation.day || existsUser?.isRelation?.day,
+                status: isRelation.status || existsUser?.isRelation?.status
+            };
+        }
+        if (day || month || year) {
+            updateObj.birthday = {
+                day: day || existsUser?.birthday?.day,
+                month: month || existsUser?.birthday?.month,
+                year: year || existsUser?.birthday?.year,
+                date: isoStringDateFormat(`${day || existsUser?.birthday?.day} ${month || existsUser?.birthday?.month} ${year || existsUser?.birthday?.year}`)
+            };
+        }
 
-            name: {
-                firstName: fName,
-                lastName: lName,
-                fullName: fName + " " + lName,
-            },
-            gender,
-            defaultPhone,
-            profileUrl,
-            website,
-            profileTitle,
-            homeTown,
-            currentCity,
-            isMarried,
-            isRelation: {
-                relationType: isRelation?.relationType,
-                withRelation: isRelation?.withRelation,
-                year: isRelation?.year,
-                month: isRelation?.month,
-                day: isRelation?.day,
-                status: isRelation?.status,
-            },
-            birthday: {
-                day: d,
-                month: m,
-                year: y,
-                date: isoStringDateFormat(`${d} ${m} ${y}`)
+
+
+
+
+        // upload profile image
+        if (image) {
+
+            const imageRes = await cloudinary.uploader.upload(image, {
+                folder: 'social_app',
+            })
+            const { url, format, width, height, bytes } = imageRes;
+
+
+            const file = await Media.create({
+                fileType: "profile",
+                fileUrl: url,
+                width,
+                height,
+                extension: format,
+                size: bytes,
+            })
+
+            if (file?._id) {
+                updateObj.profileImage = file?._id;
             }
-        };
 
-        const user = await User.findByIdAndUpdate(userId, userObj, { new: true, runValidators: true }).select('-password');
+            const post = await Post.create({
+                owner: userId,
+                media: file?._id,
+            })
+
+
+        }
+
+
+
+        const user = await User.findByIdAndUpdate(userId, updateObj, { new: true, upsert: true, runValidators: true }).select('-password').populate("profileImage coverImage");
         if (!user) throw createError(404, "Update request are faild");
 
 

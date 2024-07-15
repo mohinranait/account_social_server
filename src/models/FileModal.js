@@ -23,6 +23,6 @@ const fileSchema = new Schema({
     }
 }, { timestamps: true });
 
-const FileType = model('FileType', fileSchema);
+const Media = model('Media', fileSchema);
 
-module.exports = FileType;
+module.exports = Media;

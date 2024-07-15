@@ -154,7 +154,7 @@ const logoutUser = async (req, res, next) => {
 const findAuthenticationUser = async (req, res, next) => {
     try {
         const { id, role, email, } = req?.user;
-        const user = await User.findById(id).select('-password');
+        const user = await User.findById(id).select('-password').populate('profileImage').populate('coverImage');
         if (!user) {
             return next(createError(404, 'not-found'))
         }
