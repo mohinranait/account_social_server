@@ -8,7 +8,7 @@ const createNewPost = async (req, res, next) => {
     try {
 
         const body = req.body;
-        const post = await Post.create({ ...body, owner: ownerId });
+        const post = await Post.create({ ...body });
 
 
         return successResponse(res, {
@@ -26,7 +26,12 @@ const createNewPost = async (req, res, next) => {
 // get all posts
 const getAllPosts = async (req, res, next) => {
     try {
-        const posts = await Post.find({});
+        let query = {};
+
+        const posts = await Post.find({}).populate({
+            path: 'owner',
+            select: '_id profileUrl name.fullName'
+        });
         return successResponse(res, {
             statusCode: 200,
             message: 'success',

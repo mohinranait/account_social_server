@@ -66,7 +66,7 @@ const updatePorfileById = async (req, res, next) => {
     try {
 
         const userId = req?.user?.id;
-        const { website, profileTitle, homeTown, isRelation, currentCity, isMarried, day, defaultPhone, profileUrl, month, year, gender, firstName, lastName } = req.body;
+        const { website, profileTitle, homeTown, isRelation, currentCity, socialMedia, isMarried, day, defaultPhone, profileUrl, month, year, gender, firstName, lastName } = req.body;
         const image = req.file?.path;
 
 
@@ -114,6 +114,8 @@ const updatePorfileById = async (req, res, next) => {
                 status: homeTown.status || existsUser?.homeTown?.status
             };
         }
+
+        // If currentCity is existis 
         if (currentCity) {
             updateObj.currentCity = {
                 value: currentCity.value || existsUser?.currentCity?.value,
@@ -141,6 +143,27 @@ const updatePorfileById = async (req, res, next) => {
                 date: isoStringDateFormat(`${day || existsUser?.birthday?.day} ${month || existsUser?.birthday?.month} ${year || existsUser?.birthday?.year}`)
             };
         }
+
+
+        // If update social media
+        if (socialMedia?.length > 0) {
+            let newArr = [];
+            [...socialMedia, ...existsUser.socialMedia]?.forEach(item => {
+                let existsValue = newArr.find(i => i?.type == item?.type);
+                if (existsValue?.type !== item?.type) {
+                    newArr.push(item)
+                }
+            })
+            updateObj.socialMedia = newArr
+        }
+
+
+
+        // If website is comming
+        if (website?.length > 0) {
+            updateObj.website = website;
+        }
+
 
 
 

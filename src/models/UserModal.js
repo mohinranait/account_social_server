@@ -1,5 +1,18 @@
 const { Schema, model, Types, } = require('mongoose');
 
+const socialSchema = new Schema({
+    type: {
+        type: String,
+    },
+    url: {
+        type: String,
+    },
+    status: {
+        type: String,
+        default: 'Public', // Public, Onlyme, Friends
+    },
+}, { timestamps: true })
+
 const userSchema = new Schema({
     name: {
         firstName: {
@@ -179,20 +192,9 @@ const userSchema = new Schema({
             default: 'Public', // Public, Onlyme, Friends
         },
     },
-    socialMedia: [
-        {
-            type: {
-                type: String,
-            },
-            url: {
-                type: String,
-            },
-            status: {
-                type: String,
-                default: 'Public', // Public, Onlyme, Friends
-            },
-        }
-    ],
+    socialMedia: {
+        type: [socialSchema],
+    },
     followrs: {
         type: Array,
         default: [],

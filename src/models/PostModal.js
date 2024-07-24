@@ -1,5 +1,7 @@
 const { Schema, model, Types } = require('mongoose');
 
+
+
 const postSchema = new Schema({
     media: {
         type: Types.ObjectId,
@@ -12,16 +14,17 @@ const postSchema = new Schema({
     text: {
         type: String,
     },
-    withFiiends: {
+    withFriends: {
         type: Array,
+        default: null,
     },
     isFelling: {
         type: String,
     },
     status: {
         type: String,
-        default: 'public',
-        enum: ['public', 'private', 'firends', 'colaborate']
+        default: 'Public',
+        enum: ['Public', 'Onlyme', 'Friends', 'Colaborate']
     },
     postReaction: [
         {
