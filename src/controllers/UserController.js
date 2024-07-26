@@ -227,7 +227,7 @@ const updatePorfileById = async (req, res, next) => {
 const getAllUsers = async (req, res, next) => {
     try {
         const search = req.query?.search || '';
-        console.log(search);
+
         let searchReg = new RegExp('.*' + search + '.*', 'i')
         let query = {
             $or: [

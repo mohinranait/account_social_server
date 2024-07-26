@@ -1,3 +1,5 @@
+
+
 const { Schema, Types, model, } = require('mongoose');
 
 const conversationSchema = new Schema({
@@ -8,6 +10,14 @@ const conversationSchema = new Schema({
             required: true
         }
     ],
+    creatorId: {
+        type: Types.ObjectId,
+        ref: 'User',
+    },
+    otherId: {
+        type: Types.ObjectId,
+        ref: 'User',
+    },
     messages: [
         {
             type: Types.ObjectId,

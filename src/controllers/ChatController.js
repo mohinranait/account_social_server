@@ -2,41 +2,53 @@ const Conversation = require("../models/ConversationModal");
 const Message = require("../models/MessageModal");
 
 
+
+
+// send new Message 
 const sendMessage = async (req, res) => {
     try {
-        const { message } = req.body;
+        const body = req.body;
         const { id: reciverId } = req.params;
         const senderId = req.user?.id;
 
         let convercation = await Conversation.findOne({
             participants: { $all: [senderId, reciverId] }
-        })
+        }).populate("creatorId").populate('otherId')
 
         if (!convercation) {
-            await Conversation.create({
-                participants: [senderId, reciverId]
+            convercation = await Conversation.create({
+                participants: [senderId, reciverId],
+                creatorId: senderId,
+                otherId: reciverId
             })
+
+
         }
 
         const newMessage = new Message({
-            message,
+            message: body.message,
             reciverId,
             senderId,
-
         })
 
         if (newMessage) {
-            convercation.message.push(newMessage._id)
+            convercation.messages.push(newMessage._id)
         }
+
+
 
         // await convercation.save();
         // await newMessage.save();
 
         await Promise.all([convercation.save(), newMessage.save()])
 
+
+
+
         res.send({
-            succcess: true,
-            data: newMessage,
+            success: true,
+            convercation,
+            message: newMessage,
         })
     } catch (error) {
         res.send({
@@ -46,6 +58,7 @@ const sendMessage = async (req, res) => {
     }
 }
 
+// get all messages by Convenstion
 const getMessage = async (req, res) => {
     try {
 
@@ -55,11 +68,12 @@ const getMessage = async (req, res) => {
 
         const convercation = await Conversation.findOne({
             participants: { $all: [senderId, userToChatId] }
-        }).populate('message')
+        }).populate('messages')
+
 
         res.send({
             message: true,
-            data: convercation?.message,
+            messages: convercation?.messages,
         })
 
     } catch (error) {
@@ -71,7 +85,36 @@ const getMessage = async (req, res) => {
 }
 
 
+// get all convensions
+const getAllConvenstions = async (req, res, next) => {
+    try {
+        const senderId = req.user?.id;
+        let query = {
+            participants: { $in: senderId }
+        };
+
+        const conversations = await Conversation.find(query).populate('messages').populate({
+            path: 'creatorId',
+            select: 'name.fullName name.firstName profileImage profileUrl'
+        }).populate({
+            path: 'otherId',
+            select: 'name.fullName name.firstName profileImage profileUrl'
+        })
+
+        console.log("get con: ", conversations);
+
+        res.send({
+            success: true,
+            conversations,
+        })
+    } catch (error) {
+
+    }
+}
+
+
 module.exports = {
     sendMessage,
     getMessage,
+    getAllConvenstions,
 }
