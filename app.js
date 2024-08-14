@@ -110,4 +110,10 @@ io.on('connection', (socket) => {
     })
 })
 
-module.exports = expressServer;
+
+expressServer.listen(serverPort, () => {
+    console.log(`Server is running at port http://localhost:${serverPort}`)
+})
+
+
+// module.exports = expressServer;
