@@ -101,7 +101,7 @@ const getAllConvenstions = async (req, res, next) => {
             select: 'name.fullName name.firstName profileImage profileUrl'
         })
 
-        console.log("get con: ", conversations);
+        // console.log("get con: ", conversations);
 
         res.send({
             success: true,

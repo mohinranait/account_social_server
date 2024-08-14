@@ -18,6 +18,14 @@ const messageSchema = new Schema({
         default: 'text',
         enum: ['file', 'text']
     },
+    readMessage: {
+        type: Boolean,
+        default: false,
+    },
+    readTime: {
+        type: Date,
+        default: null,
+    },
 }, { timestamps: true })
 
 const Message = model("Message", messageSchema);
