@@ -28,12 +28,13 @@ const limiter = rateLimit({
 })
 
 
+
 // middleware
 app.use(limiter)
 app.use(express.json());
 app.use(
     cors({
-        origin: ['http://localhost:3000'],
+        origin: ['http://localhost:3000', 'https://account-social-media-app.vercel.app'],
         credentials: true,
         methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
     })
