@@ -12,7 +12,7 @@ const invitationSchema = new Schema({
     requestStatus: {
         type: String,
         default: "pending",
-        enum: ['pending', 'accepted', 'rejected', 'cancel']
+        enum: ['pending', 'friend']
     }
 }, { timestamps: true });
 

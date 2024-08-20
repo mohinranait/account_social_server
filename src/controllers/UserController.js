@@ -6,6 +6,7 @@ const createError = require("http-errors");
 const mongoose = require('mongoose');
 const Media = require("../models/FileModal");
 const Post = require("../models/PostModal");
+const Invitation = require("../models/InvitationModal");
 
 // get single user 
 const getSingleUser = async (req, res, next) => {
@@ -227,28 +228,159 @@ const updatePorfileById = async (req, res, next) => {
 const getAllUsers = async (req, res, next) => {
     try {
         const search = req.query?.search || '';
+        const getUsersActions = req?.query?.querytype || '' // suggestions, friends, followers,newRequest, all,
+        const userId = req?.user?.id;
+
 
         let searchReg = new RegExp('.*' + search + '.*', 'i')
-        let query = {
-            $or: [
+        let query = {};
+
+
+        // for search user
+        if (search.trim() !== '') {
+            query.$or = [
                 {
                     "name.fullName": { $regex: searchReg }
                 }
             ]
-        };
+        }
+
         let options = { password: 0 }
-        console.log(query);
 
-        const users = await User.find(query).select('-password');
 
+        let users = []
+
+        // get followers users
+        if (getUsersActions === 'followers') {
+            const followers = Invitation.find({ reciverId: userId, requestStatus: { $in: ['pending', 'friend'] } })
+            // Fetch friends based on the query
+            query._id = { $ne: userId, }
+            users = await User.find(query)
+                .select('-password')
+                .populate('profileImage');
+        }
+
+
+
+        // get Friends users
+        if (getUsersActions === 'friends') {
+            const invitations = await Invitation.find({
+                $or: [
+                    { reciverId: userId },
+                    { senderId: userId },
+                ],
+                requestStatus: 'friend'
+            })
+
+            let findSenderIds = invitations.map(invitation => {
+                if (invitation.reciverId.toString() == userId) {
+                    return invitation.senderId.toString()
+                } else {
+                    return invitation.reciverId.toString()
+                }
+            });
+
+
+            // Fetch friends based on the query
+            query._id = { $in: findSenderIds, }
+            users = await User.find(query)
+                .select('-password')
+                .populate('profileImage');
+        }
+
+        // get suggestions users
+        if (getUsersActions === 'suggestions') {
+
+            let invitations = await Invitation.find({
+                $or: [
+                    { senderId: userId },
+                    { reciverId: userId },
+                ]
+            });
+
+            let findSenderIds = invitations.map(invitation => {
+                if (invitation.reciverId.toString() == userId) {
+                    return invitation.senderId.toString()
+                } else {
+                    return invitation.reciverId.toString()
+                }
+            });
+
+
+            findSenderIds.push(userId.toString());
+
+            query._id = { $nin: findSenderIds };
+
+            users = await User.find(query)
+                .select('-password')
+                .populate('profileImage');
+        }
+
+        // final step 
+        // if (users?.length == 0) {
+        //     users = await User.find(query).select('-password').populate('profileImage')
+        // }
         // send success response 
         return successResponse(res, {
             message: 'users',
             statusCode: 200,
             payload: {
-                users,
+                users
             }
         })
+    } catch (error) {
+        next(error)
+    }
+}
+
+
+
+const getNewFriendRequests = async (req, res, next) => {
+    try {
+        const userId = req?.user?.id;
+
+        const followers = await Invitation.find({
+            reciverId: userId,
+            requestStatus: 'pending'
+        }).populate({
+            path: 'senderId',
+            select: '-password'
+        });
+
+        return successResponse(res, {
+            message: 'followers',
+            statusCode: 200,
+            payload: {
+                followers
+            }
+        })
+
+    } catch (error) {
+        next(error)
+    }
+}
+
+
+const getAllFollowingFriends = async (req, res, next) => {
+    try {
+        const userId = req?.user?.id;
+
+        const followings = await Invitation.find({
+            senderId: userId,
+            requestStatus: 'pending'
+        }).populate({
+            path: 'reciverId',
+            select: '-password'
+        });
+
+        return successResponse(res, {
+            message: 'followings',
+            statusCode: 200,
+            payload: {
+                followings
+            }
+        })
+
     } catch (error) {
         next(error)
     }
@@ -259,5 +391,7 @@ const getAllUsers = async (req, res, next) => {
 module.exports = {
     updatePorfileById,
     getAllUsers,
-    getSingleUser
+    getSingleUser,
+    getNewFriendRequests,
+    getAllFollowingFriends,
 }

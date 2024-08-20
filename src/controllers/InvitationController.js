@@ -80,7 +80,7 @@ const invitationAccepted = async (req, res, next) => {
 
         // update 
         const invite = await Invitation.findByIdAndUpdate(inviteId, {
-            requestStatus: 'accepted',
+            requestStatus: 'friend',
         }, {
             new: true,
             runValidators: true,
