@@ -261,9 +261,13 @@ const getAllUsers = async (req, res, next) => {
         }
 
 
+        console.log(query);
+
 
         // get Friends users
         if (getUsersActions === 'friends') {
+            console.log('fiedns');
+
             const invitations = await Invitation.find({
                 $or: [
                     { reciverId: userId },
@@ -283,6 +287,9 @@ const getAllUsers = async (req, res, next) => {
 
             // Fetch friends based on the query
             query._id = { $in: findSenderIds, }
+
+            console.log(query);
+
             users = await User.find(query)
                 .select('-password')
                 .populate('profileImage');

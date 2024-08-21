@@ -204,7 +204,7 @@ const uploadMedia = async (req, res, next) => {
         const image = req.file.path;
 
         // Upload an image
-        const uploadResult = await cloudinary.uploader
+        const file = await cloudinary.uploader
             .upload(
                 image, {
                 public_id: 'social_app',
@@ -213,7 +213,7 @@ const uploadMedia = async (req, res, next) => {
                 console.log(error);
             });
 
-        const { url, format, width, height, bytes } = uploadResult;
+        const { url, format, width, height, bytes } = file;
 
 
         res.send({

@@ -2,6 +2,7 @@ const { successResponse } = require("../helpers/responsHandler");
 const Post = require("../models/PostModal");
 const createError = require("http-errors");
 const User = require("../models/UserModal");
+const { isValidObjectId } = require("../helpers/helpers");
 
 
 // Create new psot
@@ -27,12 +28,44 @@ const createNewPost = async (req, res, next) => {
 // get all posts
 const getAllPosts = async (req, res, next) => {
     try {
-        let query = {};
 
-        const posts = await Post.find({}).populate({
-            path: 'owner',
-            select: '_id profileUrl name.fullName'
-        });
+        let postType = req?.query?.postType // userWishPosts
+        let userWishPosts = req?.query?.query // userWishPosts
+
+
+        let query = {};
+        let posts = [];
+
+        if (isValidObjectId(userWishPosts)) {
+
+
+            query.owner = {
+                $eq: userWishPosts
+            }
+            console.log('query', query);
+
+            posts = await Post.find(query).sort({ updatedAt: -1 }).populate({
+                path: 'owner',
+                select: '_id profileUrl name.fullName'
+            }).populate({
+                path: 'media',
+                select: '_id fileType fileUrl extension'
+            });
+
+        }
+
+
+        if (userWishPosts == 'all') {
+            posts = await Post.find(query).populate({
+                path: 'owner',
+                select: '_id profileUrl name.fullName'
+            }).populate({
+                path: 'media',
+                select: '_id fileType fileUrl extension'
+            }).sort({ updatedAt: -1 });
+        }
+
+
         return successResponse(res, {
             statusCode: 200,
             message: 'success',
