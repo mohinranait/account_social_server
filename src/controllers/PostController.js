@@ -3,6 +3,7 @@ const Post = require("../models/PostModal");
 const createError = require("http-errors");
 const User = require("../models/UserModal");
 const { isValidObjectId } = require("../helpers/helpers");
+const Invitation = require("../models/InvitationModal");
 
 
 // Create new psot
@@ -28,7 +29,7 @@ const createNewPost = async (req, res, next) => {
 // get all posts
 const getAllPosts = async (req, res, next) => {
     try {
-
+        const userId = req?.user?.id;
         let postType = req?.query?.postType // userWishPosts
         let userWishPosts = req?.query?.query // userWishPosts
 
@@ -38,11 +39,55 @@ const getAllPosts = async (req, res, next) => {
 
         if (isValidObjectId(userWishPosts)) {
 
+            const getFriendInvitasion = await Invitation.findOne({
+                $or: [
+                    { senderId: userId, reciverId: userWishPosts },
+                    { senderId: userWishPosts, reciverId: userId },
+                ]
+            })
+
+            console.log(getFriendInvitasion);
+
+
 
             query.owner = {
-                $eq: userWishPosts
+                $eq: userWishPosts,
             }
             console.log('query', query);
+
+            if (userWishPosts == userId) {
+                query.$or = [
+                    {
+                        status: { $in: ["Onlyme", "Public", "Friends"] },
+                        owner: userId,
+                    },
+                ]
+            } else {
+                if (getFriendInvitasion) {
+                    if (getFriendInvitasion?.requestStatus == 'friend') {
+                        query.$or = [
+                            {
+                                status: { $in: ["Public", 'Friends'] },
+                            },
+                        ]
+                    } else if (getFriendInvitasion.requestStatus === 'pending') {
+                        query.$or = [
+                            {
+                                status: { $in: ["Public"] },
+                            }
+                        ];
+                    }
+                } else {
+                    query.$or = [
+                        { status: { $in: ["Public"] }, },
+                    ]
+                }
+            }
+
+
+
+
+
 
             posts = await Post.find(query).sort({ updatedAt: -1 }).populate({
                 path: 'owner',
@@ -56,13 +101,38 @@ const getAllPosts = async (req, res, next) => {
 
 
         if (userWishPosts == 'all') {
-            posts = await Post.find(query).populate({
-                path: 'owner',
-                select: '_id profileUrl name.fullName'
-            }).populate({
-                path: 'media',
-                select: '_id fileType fileUrl extension'
-            }).sort({ updatedAt: -1 });
+            const getFriendsInvitasions = await Invitation.find({
+                $or: [
+                    { senderId: userId },
+                    { reciverId: userId },
+                ],
+                requestStatus: 'friend'
+            })
+
+            let friendsIds = getFriendsInvitasions?.map(invite => invite?.reciverId.toString() == userId ? invite?.senderId.toString() : invite?.reciverId.toString())
+            friendsIds.push(userId)
+            console.log('friends', friendsIds);
+
+
+            query.$or = [
+                {
+                    owner: { $in: friendsIds },
+                    status: { $eq: "Friends" },
+                },
+                { status: 'Public' },
+                {
+                    status: "Private",
+                    owner: userId,
+                }
+            ],
+
+                posts = await Post.find(query).populate({
+                    path: 'owner',
+                    select: '_id profileUrl name.fullName'
+                }).populate({
+                    path: 'media',
+                    select: '_id fileType fileUrl extension'
+                }).sort({ updatedAt: -1 });
         }
 
 

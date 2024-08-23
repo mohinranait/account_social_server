@@ -266,7 +266,7 @@ const getAllUsers = async (req, res, next) => {
 
         // get Friends users
         if (getUsersActions === 'friends') {
-            console.log('fiedns');
+
 
             const invitations = await Invitation.find({
                 $or: [
