@@ -46,14 +46,12 @@ const getAllPosts = async (req, res, next) => {
                 ]
             })
 
-            console.log(getFriendInvitasion);
 
 
 
             query.owner = {
                 $eq: userWishPosts,
             }
-            console.log('query', query);
 
             if (userWishPosts == userId) {
                 query.$or = [
@@ -91,7 +89,11 @@ const getAllPosts = async (req, res, next) => {
 
             posts = await Post.find(query).sort({ updatedAt: -1 }).populate({
                 path: 'owner',
-                select: '_id profileUrl name.fullName'
+                select: '_id profileUrl name.fullName',
+                populate: {
+                    path: 'profileImage',
+                    select: '_id fileUrl'
+                },
             }).populate({
                 path: 'media',
                 select: '_id fileType fileUrl extension'
@@ -111,7 +113,6 @@ const getAllPosts = async (req, res, next) => {
 
             let friendsIds = getFriendsInvitasions?.map(invite => invite?.reciverId.toString() == userId ? invite?.senderId.toString() : invite?.reciverId.toString())
             friendsIds.push(userId)
-            console.log('friends', friendsIds);
 
 
             query.$or = [
@@ -124,15 +125,41 @@ const getAllPosts = async (req, res, next) => {
                     status: "Private",
                     owner: userId,
                 }
-            ],
+            ];
 
-                posts = await Post.find(query).populate({
+
+            let randomPosts = await Post.aggregate([
+                { $match: query },
+                { $sample: { size: 10 } },
+                { $sort: { updatedAt: -1 } }
+            ])
+
+            posts = await Post.populate(randomPosts, [
+                {
                     path: 'owner',
-                    select: '_id profileUrl name.fullName'
-                }).populate({
+                    select: '_id profileUrl name.fullName',
+                    populate: {
+                        path: 'profileImage',
+                        select: '_id fileUrl'
+                    },
+                },
+                {
                     path: 'media',
                     select: '_id fileType fileUrl extension'
-                }).sort({ updatedAt: -1 });
+                }
+            ])
+
+            // posts = await Post.find(query).populate({
+            //     path: 'owner',
+            //     select: '_id profileUrl name.fullName',
+            //     populate: {
+            //         path: 'profileImage',
+            //         select: '_id fileUrl'
+            //     },
+            // }).populate({
+            //     path: 'media',
+            //     select: '_id fileType fileUrl extension'
+            // }).sort({ updatedAt: -1 });
         }
 
 

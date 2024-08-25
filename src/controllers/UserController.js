@@ -261,7 +261,7 @@ const getAllUsers = async (req, res, next) => {
         }
 
 
-        console.log(query);
+
 
 
         // get Friends users
@@ -367,7 +367,7 @@ const getNewFriendRequests = async (req, res, next) => {
     }
 }
 
-
+// get all followers
 const getAllFollowingFriends = async (req, res, next) => {
     try {
         const userId = req?.user?.id;
@@ -394,6 +394,64 @@ const getAllFollowingFriends = async (req, res, next) => {
 }
 
 
+// Profile statics
+const getProfileStatics = async (req, res, next) => {
+    try {
+        const userId = req.user?.id;
+
+        // Total Followers
+        const totalFollower = await Invitation.countDocuments({
+            $or: [
+                { senderId: userId },
+                { reciverId: userId },
+            ],
+            reciverId: userId,
+        });
+
+        // Total Following
+        const totalFollowing = await Invitation.countDocuments({
+            $or: [
+                { senderId: userId },
+                { reciverId: userId },
+            ],
+            senderId: userId,
+        });
+
+        // Friend invitations 
+        const getFriendInvitations = await Invitation.find({
+            $or: [
+                { senderId: userId },
+                { reciverId: userId },
+            ],
+            requestStatus: 'friend',
+        })
+
+        const friendsIds = getFriendInvitations?.map(invite => invite.reciverId.toString() == userId ? invite.senderId.toString() : invite.reciverId.toString())
+        const formateIds = friendsIds.map(id => new mongoose.Types.ObjectId(id));
+
+        const friends = await User.aggregate([
+            { $match: { _id: { $in: formateIds } } },
+            { $sample: { size: 3 } },
+            { $project: { password: 0, email: 0 } }
+        ])
+
+
+
+
+        return successResponse(res, {
+            message: "Profile statics",
+            payload: {
+                totalFollower,
+                totalFollowing,
+                friends,
+            }
+        })
+
+    } catch (error) {
+        next(error)
+    }
+}
+
 
 module.exports = {
     updatePorfileById,
@@ -401,4 +459,5 @@ module.exports = {
     getSingleUser,
     getNewFriendRequests,
     getAllFollowingFriends,
+    getProfileStatics,
 }
