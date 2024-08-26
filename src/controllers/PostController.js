@@ -11,7 +11,19 @@ const createNewPost = async (req, res, next) => {
     try {
 
         const body = req.body;
-        const post = await Post.create({ ...body });
+        // Create new post
+        let post = await Post.create({ ...body });
+        post = await Post.findById(post?._id).populate({
+            path: 'owner',
+            select: '_id profileUrl name.fullName',
+            populate: {
+                path: 'profileImage',
+                select: '_id fileUrl'
+            },
+        }).populate({
+            path: 'media',
+            select: '_id fileType fileUrl extension'
+        });
 
 
         return successResponse(res, {
@@ -130,7 +142,7 @@ const getAllPosts = async (req, res, next) => {
 
             let randomPosts = await Post.aggregate([
                 { $match: query },
-                { $sample: { size: 10 } },
+                { $sample: { size: 3 } },
                 { $sort: { updatedAt: -1 } }
             ])
 

@@ -10,26 +10,24 @@ const uploadImageService = async (req, res, next) => {
     try {
 
         const image = req.file?.path;
-
+        const fileType = req?.body?.fileType;
 
         // upload profile image
         const imageRes = await cloudinary.uploader.upload(image, {
             folder: 'social_app',
         })
-        console.log("image cloudinary", imageRes);
 
         const { url, format, width, height, bytes } = imageRes;
 
 
         const file = await Media.create({
-            fileType: "profile",
+            fileType: fileType,
             fileUrl: url,
             width,
             height,
             extension: format,
             size: bytes,
         })
-
 
 
 

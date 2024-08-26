@@ -429,12 +429,21 @@ const getProfileStatics = async (req, res, next) => {
         const friendsIds = getFriendInvitations?.map(invite => invite.reciverId.toString() == userId ? invite.senderId.toString() : invite.reciverId.toString())
         const formateIds = friendsIds.map(id => new mongoose.Types.ObjectId(id));
 
-        const friends = await User.aggregate([
+        const pipline = await User.aggregate([
             { $match: { _id: { $in: formateIds } } },
             { $sample: { size: 3 } },
             { $project: { password: 0, email: 0 } }
         ])
 
+        const friends = await User.populate(pipline, [
+            {
+                path: 'profileImage',
+                select: '_id fileUrl'
+            },
+        ])
+
+
+        console.log(friends);
 
 
 

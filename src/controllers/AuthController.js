@@ -88,7 +88,7 @@ const loginUser = async (req, res, next) => {
         if (!password) throw createError(400, 'Password is required');
 
         // find existing user
-        let existsUser = await User.findOne({ email });
+        let existsUser = await User.findOne({ email }).populate('profileImage').populate('coverImage');
         if (!existsUser) throw createError(404, "not-found");
 
         // match password
