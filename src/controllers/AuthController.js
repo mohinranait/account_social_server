@@ -1,7 +1,7 @@
 const User = require("../models/UserModal");
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { jwtSecret } = require("../config/secretEnv");
+const { jwtSecret, productionMode } = require("../config/secretEnv");
 const { isoStringDateFormat } = require("../helpers/dateFormater");
 const { successResponse } = require("../helpers/responsHandler");
 const createError = require("http-errors")
@@ -110,9 +110,13 @@ const loginUser = async (req, res, next) => {
 
         // send response 
         res.cookie("access_token", token, {
+            // httpOnly: true,
+            // secure: true,
+            // samesite: "none",
+
             httpOnly: true,
-            secure: true,
-            samesite: "none",
+            secure: productionMode == 'production',
+            sameSite: productionMode == 'production' ? 'none' : 'strict'
         })
 
         return successResponse(res, {
